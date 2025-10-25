@@ -1,0 +1,19 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body .stsearch-box input{
+    @apply border-none outline-none py-0 rounded-none min-h-9 placeholder:text-default-400
+}
+body .stdropdown-input.stsearch-box{
+    @apply ps-2 pe-3
+}
+body .stdropdown-container{
+    @apply border-default-200 border-2 rounded-xl hover:border-default-400
+}
+body .stdropdown-tool svg{
+    @apply fill-slate-600 w-4 cursor-pointer
+}
+body .infinite-scroll button{
+    @apply hover:border-default-400
+}
