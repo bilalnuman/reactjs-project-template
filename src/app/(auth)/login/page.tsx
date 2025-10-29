@@ -5,7 +5,7 @@ import React from 'react'
 const page = () => {
   return (
     <div>
-      <div className='bg-black text-white py-5 text-center'>
+      <div className='text-white py-5 text-center bg-indigo-300'>
         <Link href='/widgets'>Widgets</Link>
       </div>
       <SignInForm/>

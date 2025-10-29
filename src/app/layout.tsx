@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Archivo, Inter, Poppins } from "next/font/google";
 import "./globals.css";
 import clsx from "clsx";
+import { Providers } from "@/providers/providers";
 
 
 const archivo = Archivo({
@@ -35,7 +36,8 @@ export default function RootLayout({
       <body
         className={clsx("antialiased", archivo.variable, inter.variable, poppins.variable)}
       >
-        {children}
+         <Providers>{children}</Providers>
+          
       </body>
     </html>
   );

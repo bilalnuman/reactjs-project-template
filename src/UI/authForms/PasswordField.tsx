@@ -6,12 +6,12 @@ import { FiEye, FiEyeOff } from "react-icons/fi";
 import { transparentField } from "@/styles/resuableClasses";
 
 type Props = Omit<React.ComponentProps<typeof Input>, "type" | "name" | "isInvalid" | "errorMessage"> & {
-  fieldName: string;
+  fieldName?: string;
   errorMessage?: string;
-  label:string
+  label?: string
 };
 
-export const PasswordField: React.FC<Props> = ({ fieldName,label, errorMessage, ...rest }) => {
+export const PasswordField: React.FC<Props> = ({ fieldName = "password", label = "Password", errorMessage, ...rest }) => {
   const methods = useFormContext();
   if (!methods) {
     throw new Error("PasswordField must be used within a FormProvider");

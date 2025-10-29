@@ -62,6 +62,7 @@ export const schema = z
     }
   });
 
+const terms= z.boolean().refine((val) => val === true, { message: "You must accept the terms" })
 
 const email = z.string({ required_error: "Email is required" }).email("Enter a valid email")
 
@@ -116,7 +117,8 @@ export type SignUpFormValue = z.infer<typeof SignUpSchema>
 
 export const LoginInSchema = z.object({
   email: email,
-  password: password
+  password: password,
+  terms:terms
 })
 
 export type LoginInFormValue = z.infer<typeof LoginInSchema>

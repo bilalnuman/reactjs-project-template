@@ -40,10 +40,7 @@ export default function ResetPasswordForm() {
                   label="Old Password"
                 />
               }
-              <PasswordField
-                fieldName="password"
-                label="Password"
-              />
+              <PasswordField />
               <PasswordField
                 fieldName="confirmPassword"
                 placeholder="Enter Confirm Password"
@@ -51,9 +48,9 @@ export default function ResetPasswordForm() {
               />
             </CardBody>
             <CardFooter className="flex flex-col sm:flex-row items-stretch gap-3">
-              
+
               <Button type="submit" color="primary" size="lg" className="w-full" isDisabled={!isValid} isLoading={isSubmitting}>
-                {token?"Reset Password":"Update Password"}
+                {token ? "Reset Password" : "Update Password"}
               </Button>
               <Button type="button" variant="flat" size="lg" className="w-full" onPress={() => reset()}>
                 Reset
