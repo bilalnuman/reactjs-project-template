@@ -20,7 +20,7 @@ import {
   TimeInput,
 } from "@heroui/react";
 import { parseDate, parseTime } from "@internationalized/date";
-import { FiEye, FiEyeOff } from "react-icons/fi";
+import { FiBarChart, FiEye, FiEyeOff, FiHome, FiSettings } from "react-icons/fi";
 import PhoneField from "./components/PhoneField";
 import LocationField from "./components/LocationField";
 import { schema } from "@/formValidationSchemas";
@@ -29,8 +29,23 @@ import InfiniteSelect from "./components/InfiniteSelect";
 import { transparentField } from "@/styles/resuableClasses";
 import { FormValues } from "@/types";
 import MultiDatesField from "./components/MultiDatesField";
+import Pagination from "./components/Pagination";
+import { SearchField } from "./components/SearchField";
+import Sidebar from "./components/Sidebar";
 
-
+const items = [
+  { label: 'Dashboard', icon: <FiHome className="w-5 h-5" />, href: '/widgets' },
+  {
+    label: 'Reports',
+    icon: <FiBarChart className="w-5 h-5" />,
+    href: '#',   
+    childrens: [
+      { label: 'Sales', href: '/reports/sales' },
+      { label: 'Customers', href: '/reports/customers' },
+    ],
+  },
+  { label: 'Settings', icon: <FiSettings className="w-5 h-5" />, href: '/settings' },
+];
 
 
 export default function FormWidget() {
@@ -96,8 +111,12 @@ export default function FormWidget() {
   const city = watch("city");
 
   return (
+    <div>
+      <Sidebar items={items}/>
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-background to-default-50 p-6">
+
       <Card className="w-full max-w-3xl shadow-xl">
+        <Pagination totalPages={30} />
         <CardHeader className="pb-0">
           <div className="flex items-center gap-3">
             <div>
@@ -105,8 +124,9 @@ export default function FormWidget() {
               <p className="text-sm text-default-500">HeroUI · React Hook Form · Zod · Tailwind</p>
             </div>
           </div>
-        </CardHeader>
 
+        </CardHeader>
+        <div className="px-4 my-5 w-full"><SearchField onSearch={(val)=>console.log(val)} isDisabled={false}/></div>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
           <CardBody className="grid gap-8">
             {/* --- Personal Info --- */}
@@ -445,9 +465,10 @@ export default function FormWidget() {
             >
               Reset
             </Button>
+
           </CardFooter>
         </form>
       </Card>
-    </div>
+    </div>\</div>
   );
 }
