@@ -1,6 +1,6 @@
 "use client";
 import React, { useEffect } from "react";
-import {Controller, FormProvider } from "react-hook-form";
+import { Controller, FormProvider } from "react-hook-form";
 import {
   Checkbox,
   Button,
@@ -23,8 +23,9 @@ export default function SignInForm() {
   const setCurrentUser = useAppStore(selectSetCurrentUser);
   const user = useAppStore(selectCurrentUser);
   const { mutateAsync: login, isPending, isSuccess } = useApiMutation(method, url);
-  const { data: me, isLoading } = useApiGet<any>(ROUTES.me, { enabled: isSuccess });
-  const methods = useRHF({schema: LoginInSchema});
+  const { data: me, isLoading } = useApiGet<any>({ url: ROUTES.me, enabled: isSuccess });
+  const methods = useRHF({ schema: LoginInSchema });
+  console.log(me)
 
   const { handleSubmit, control, reset, formState: { errors, isValid } } = methods;
 
