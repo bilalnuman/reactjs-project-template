@@ -91,14 +91,31 @@ export default function FormWidget() {
   const [options, setOptions] = React.useState<OPTION_TYPE[]>(ALL_OPTIONS.slice(0, 20));
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const loadMore = React.useCallback((page: number, qeury?: any) => {
-    console.log(qeury)
+  const fetchData = React.useCallback((page: number, qeury?: any) => {
     if (isLoading) return;
-    setIsLoading(true);
-    setTimeout(() => {
-      setOptions((prev) => ALL_OPTIONS.slice(0, Math.min(prev.length + 20, ALL_OPTIONS.length)));
-      setIsLoading(false);
-    }, 400);
+
+    if (!qeury && page > 1) {
+      setIsLoading(true);
+      setTimeout(() => {
+        setOptions((prev) => ALL_OPTIONS.slice(0, Math.min(prev.length + 20, ALL_OPTIONS.length)));
+        setIsLoading(false);
+      }, 400);
+    }
+
+    if (qeury && page === 1) {
+      const filtered = ALL_OPTIONS.filter((opt) => opt.label.toLowerCase().replaceAll(" ", "").includes(qeury.toLowerCase().replaceAll(" ", "")));
+      if (filtered.length === 0 && qeury) {
+        console.log(qeury)
+        setIsLoading(true);
+        setTimeout(() => {
+          setOptions([]);
+          setIsLoading(false);
+        }, 400);
+
+        return;
+      }
+      setOptions(filtered.slice(0, 20));
+    }
   }, [isLoading]);
 
   const onSubmit: (values: FormValues) => Promise<void> = async (values) => {
@@ -398,10 +415,11 @@ export default function FormWidget() {
                       label="Infinite Select"
                       placeholder="Start scrolling…"
                       options={options}
-                      loadMore={loadMore}
+                      loadMore={fetchData}
                       isLoading={isLoading}
                       selectionMode="multiple"
                       totalPages={Math.ceil(ALL_OPTIONS.length / 20)}
+                      onSearch={(e) => fetchData(1, e.target.value)}
 
                     />
                   )}
