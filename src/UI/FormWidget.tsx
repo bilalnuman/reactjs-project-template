@@ -91,8 +91,8 @@ export default function FormWidget() {
   const [options, setOptions] = React.useState<OPTION_TYPE[]>(ALL_OPTIONS.slice(0, 20));
   const [isLoading, setIsLoading] = React.useState(false);
 
-  const loadMore = React.useCallback((page: number) => {
-    console.log(page, Math.ceil(ALL_OPTIONS.length / 20));
+  const loadMore = React.useCallback((page: number, qeury?: any) => {
+    console.log(qeury)
     if (isLoading) return;
     setIsLoading(true);
     setTimeout(() => {

@@ -7,7 +7,9 @@ import {
   Listbox,
   ListboxItem,
   Spinner,
+  Input,
 } from "@heroui/react";
+import { debounce } from "lodash";
 
 export type OPTION_TYPE = {
   key: string;
@@ -19,7 +21,7 @@ interface InfiniteSelectProps {
   placeholder?: string;
   value?: string | string[];
   onChange?: (val: string | string[]) => void;
-  loadMore?: (page: number) => void;
+  loadMore?: (page: number, q?: string) => void;
   isLoading?: boolean;
   errorMessage?: string;
   options: OPTION_TYPE[];
@@ -40,17 +42,80 @@ export default function InfiniteSelect({
   loadMore = () => { },
 }: InfiniteSelectProps) {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [search, setSearch] = React.useState("");
+  const [displayedOptions, setDisplayedOptions] = React.useState<OPTION_TYPE[]>(options);
+
   const pageRef = React.useRef(1);
+  const remoteSearchActiveRef = React.useRef(false);
+  const lastRemoteSearchRef = React.useRef<string | null>(null);
+
+  // Reset page when popover opens
   useEffect(() => {
     if (isOpen) {
       pageRef.current = 1;
     }
   }, [isOpen]);
+
+  // Debounced remote fetch (page + query)
+  const debouncedFetch = React.useMemo(
+    () =>
+      debounce((page: number, q: string) => {
+        loadMore(page, q);
+      }, 500),
+    [loadMore]
+  );
+
+  // Cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      debouncedFetch.cancel();
+    };
+  }, [debouncedFetch]);
+
+  // Local search-first, then remote if no local matches
+  useEffect(() => {
+    const q = search.trim().toLowerCase();
+
+    if (!q) {
+      setDisplayedOptions(options);
+      remoteSearchActiveRef.current = false;
+      lastRemoteSearchRef.current = null;
+      pageRef.current = 1;
+      return;
+    }
+
+    // Local search in current options
+    const localMatches = options.filter((o) =>
+      o.label.toLowerCase().includes(q)
+    );
+
+    if (localMatches.length > 0) {
+      setDisplayedOptions(localMatches);
+      remoteSearchActiveRef.current = false;
+      lastRemoteSearchRef.current = null;
+      return;
+    }
+
+    // No local matches –> call remote search (debounced)
+    setDisplayedOptions([]);
+    const changedQuery = lastRemoteSearchRef.current !== q;
+
+    if (!remoteSearchActiveRef.current || changedQuery) {
+      remoteSearchActiveRef.current = true;
+      lastRemoteSearchRef.current = q;
+      pageRef.current = 1;
+      debouncedFetch(1, q);
+    }
+  }, [options, search, debouncedFetch]);
+
+  // Normalize value to array
   const selectedValues = React.useMemo<string[]>(() => {
     if (Array.isArray(value)) return value;
     if (typeof value === "string" && value) return [value];
     return [];
   }, [value]);
+
+  // Text in the button
   const selectedLabel = React.useMemo(() => {
     if (selectionMode === "single") {
       const v = typeof value === "string" ? value : selectedValues[0];
@@ -73,9 +138,18 @@ export default function InfiniteSelect({
 
   const handleLoadMore = () => {
     if (!canLoadMore || isLoading) return;
+
     const nextPage = pageRef.current + 1;
     pageRef.current = nextPage;
-    loadMore(nextPage);
+
+    const q = remoteSearchActiveRef.current ? search.trim() : undefined;
+    loadMore(nextPage, q);
+  };
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const q = event.target.value;
+    setSearch(q);
+    pageRef.current = 1;
   };
 
   return (
@@ -84,7 +158,16 @@ export default function InfiniteSelect({
 
       <Popover
         isOpen={isOpen}
-        onOpenChange={setIsOpen}
+        onOpenChange={(open) => {
+          if (selectionMode === "single") {
+            // normal open/close behavior
+            setIsOpen(open);
+          } else {
+            // multiple:
+            // allow opening but ignore auto-close from internal interactions
+            if (open) setIsOpen(true);
+          }
+        }}
         placement="bottom-start"
         offset={6}
       >
@@ -117,23 +200,37 @@ export default function InfiniteSelect({
               }
             }}
           >
+            {/* Search bar pinned at top */}
+            <div className="fixed w-[96%] ps-3 start-0 z-10 bg-white pe-1">
+              <Input
+                placeholder="Search..."
+                value={search}
+                onChange={handleSearch}
+                classNames={{
+                  inputWrapper:
+                    "border border-default-200 mt-3 bg-transparent",
+                }}
+              />
+            </div>
+
             <Listbox
               aria-label={label}
               selectionMode={selectionMode}
               selectedKeys={selectedKeys}
+              className="pt-14"
               onSelectionChange={(keys) => {
                 const arr = Array.from(keys as Set<string>);
 
                 if (selectionMode === "single") {
                   const k = arr[0] ?? "";
                   onChange(k);
-                  setIsOpen(false);
+                  setIsOpen(false); // close only for single
                 } else {
-                  onChange(arr);
+                  onChange(arr); // keep open for multiple
                 }
               }}
             >
-              {options.map((item) => (
+              {displayedOptions.map((item) => (
                 <ListboxItem key={item.key}>{item.label}</ListboxItem>
               ))}
             </Listbox>
