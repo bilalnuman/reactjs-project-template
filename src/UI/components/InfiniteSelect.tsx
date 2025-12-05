@@ -38,16 +38,18 @@ export default function InfiniteSelect({
   isLoading = false,
   selectionMode = "multiple",
   totalPages = 1,
-  onChange = () => { },
-  loadMore = () => { },
+  onChange = () => {},
+  loadMore = () => {},
 }: InfiniteSelectProps) {
   const [isOpen, setIsOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
-  const [displayedOptions, setDisplayedOptions] = React.useState<OPTION_TYPE[]>(options);
+  const [displayedOptions, setDisplayedOptions] =
+    React.useState<OPTION_TYPE[]>(options);
 
   const pageRef = React.useRef(1);
   const remoteSearchActiveRef = React.useRef(false);
   const lastRemoteSearchRef = React.useRef<string | null>(null);
+  const loadingMoreRef = React.useRef(false);
 
   // Reset page when popover opens
   useEffect(() => {
@@ -72,7 +74,13 @@ export default function InfiniteSelect({
     };
   }, [debouncedFetch]);
 
-  // Local search-first, then remote if no local matches
+  // Reset loadingMoreRef when data / loading changes
+  useEffect(() => {
+    if (!isLoading) {
+      loadingMoreRef.current = false;
+    }
+  }, [options, isLoading]);
+
   useEffect(() => {
     const q = search.trim().toLowerCase();
 
@@ -137,7 +145,9 @@ export default function InfiniteSelect({
   const canLoadMore = totalPages > pageRef.current;
 
   const handleLoadMore = () => {
-    if (!canLoadMore || isLoading) return;
+    if (!canLoadMore || isLoading || loadingMoreRef.current) return;
+
+    loadingMoreRef.current = true;
 
     const nextPage = pageRef.current + 1;
     pageRef.current = nextPage;
@@ -176,8 +186,9 @@ export default function InfiniteSelect({
             variant="faded"
             size="lg"
             radius="lg"
-            className={`justify-between w-full bg-transparent ${errorMessage ? "border-danger text-danger" : ""
-              }`}
+            className={`justify-between w-full bg-transparent ${
+              errorMessage ? "border-danger text-danger" : ""
+            }`}
           >
             <div className="flex flex-col items-start">
               <span className={selectedLabel ? "" : "text-default-400"}>
@@ -192,6 +203,9 @@ export default function InfiniteSelect({
             className="max-h-72 overflow-auto w-full"
             onScroll={(e) => {
               const el = e.currentTarget;
+              const isScrollable = el.scrollHeight > el.clientHeight + 24;
+              if (!isScrollable) return;
+
               const isNearBottom =
                 el.scrollTop + el.clientHeight >= el.scrollHeight - 24;
 
